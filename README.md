@@ -1,195 +1,146 @@
-# ESG API — Spring Boot + Oracle + Docker
+# Projeto - Cidades ESG Inteligentes
 
-API RESTful (ESG) feita em **Java + Spring Boot**, com:
-- Autenticação **JWT** (Spring Security)
-- Banco **Oracle XE** (via Docker)
-- Migrações **Flyway**
-- Endpoints ESG: empresas, emissões, agendas de redução, compensações, indicadores, impacto de mitigação.
+## 👩‍💻 Integrante
 
-## 🧩 Requisitos
-- Docker e Docker Compose
-- (Opcional para desenvolvimento local) JDK 21 e Maven 3.9+
+Vanessa Dourado Bernardes
 
 ---
 
-## 🚀 Subir tudo com Docker
+## 📌 Descrição do Projeto
+
+Este projeto consiste em uma API REST desenvolvida em Java com Spring Boot, voltada para o contexto ESG (Environmental, Social and Governance), com foco no gerenciamento de emissões e indicadores ambientais.
+
+A aplicação foi adaptada para um cenário DevOps completo, incluindo pipeline CI/CD, containerização com Docker e orquestração com Docker Compose.
+
+---
+
+## 🚀 Como executar localmente com Docker
+
+### Pré-requisitos
+
+* Docker Desktop
+* Git
+
+### Passos
 
 ```bash
-docker compose build
-docker compose up -d
+git clone https://github.com/vanesssadb/esg-api-devops.git
+cd esg-api-devops
+docker compose up --build
+```
 
-Oracle: localhost:1521/XEPDB1
-(user: APP / pass: app)
+A aplicação estará disponível em:
 
+```
+http://localhost:8080
+```
 
-API: http://localhost:8080
-
-
-O Oracle sobe primeiro e cria o usuário APP via
-oracle-init/01-create-app-user.sql.
-A API aplica as migrações Flyway automaticamente.
-
-🧠 Rodar localmente (sem Docker, opcional)
-1️⃣ Sobe apenas o Oracle via Docker:
-docker compose up -d oracle
-
-2️⃣ Ajuste variáveis de ambiente (ou no IntelliJ → Edit Configurations → Environment variables):
-SPRING_DATASOURCE_URL=jdbc:oracle:thin:@//localhost:1521/XEPDB1
-SPRING_DATASOURCE_USERNAME=APP
-SPRING_DATASOURCE_PASSWORD=app
-security.jwt.secret=uma-chave-secreta-bem-grande-para-jwt
-security.jwt.expiration=86400000
-
-3️⃣ Execute:
-mvn clean package
-mvn spring-boot:run
-
-
-🔐 Segurança
-
-
-Endpoints POST, PUT, DELETE exigem Bearer Token com role ADMIN
-
-
-Endpoints GET públicos estão liberados
-
-
-Login
-POST /auth/login
-{
-  "username": "admin",
-  "password": "admin"
-}
-
-Resposta:
-{ "accessToken": "eyJhbGciOi..." }
-
-Use nas demais requisições:
-Authorization: Bearer <accessToken>
-
-
-🌍 Endpoints principais
-Companies
-
-
-GET /companies — lista empresas (público)
-
-
-POST /companies — cria empresa (ADMIN)
-
-
-Emissions
-
-
-GET /emissions?companyId={id} — lista emissões
-
-
-POST /emissions — cria emissão (ADMIN)
-
-
-Reduction Schedules
-
-
-GET /reduction-schedules — lista agendas
-
-
-GET /reduction-schedules/{id} — detalhe
-
-
-POST /reduction-schedules — cria (ADMIN)
-
-
-PUT /reduction-schedules/{id} — atualiza (ADMIN)
-
-
-DELETE /reduction-schedules/{id} — remove (ADMIN)
-
-
-Offsets
-
-
-GET /offsets — lista offsets (público)
-
-
-POST /offsets — cria offset (ADMIN)
-
-
-Indicators
-
-
-GET /indicators?companyId={id} — mostra totais e saldo líquido
-
-
-GET /impacto-mitigacao/{id} — impacto estimado de uma agenda
-
-
-
-🧪 Testes rápidos (IntelliJ ou Postman)
-Use o arquivo requests.http (ou a Collection Postman incluída).
-1️⃣ Envie o Login → salva o token
-2️⃣ Teste os endpoints com/sem autenticação
-
-📂 Estrutura do projeto
-src/
- ├── main/
- │   ├── java/br/com/fiap/atv_cap_8/
- │   │   ├── domain/         → entidades JPA (BigDecimal)
- │   │   ├── repository/     → repositórios JPA
- │   │   ├── security/       → JWT, filtros, configuração
- │   │   └── web/            → controllers REST
- │   └── resources/
- │       ├── db/migration/   → scripts Flyway (V1__*.sql)
- │       └── application.properties
- ├── Dockerfile
- ├── docker-compose.yml
- ├── oracle-init/01-create-app-user.sql
- ├── pom.xml
- ├── README.md
- ├── .dockerignore
-
-
-🧱 Docker Compose
-
-
-oracle: Oracle XE 21c com criação automática do schema APP
-
-
-app: imagem construída a partir do Dockerfile
-
-
-
-🧩 Tecnologias principais
-
-
-Java 21
-
-
-Spring Boot 3.5
-
-
-Spring Security + JWT
-
-
-Flyway
-
-
-Oracle XE (via Docker)
-
-
-Maven
-
-
-Docker Compose
-
-
-
-🧾 Créditos
-Trabalho desenvolvido para a FIAP,
-utilizando Oracle XE, Spring Boot e autenticação JWT.
+⚠️ Observação: a API utiliza autenticação JWT, portanto o acesso direto pode retornar HTTP 403 (esperado).
 
 ---
 
-✅ pronto pra só **colar esse texto inteiro** no novo arquivo `README.md`.  
-ele já vem com formatação, blocos de código e emojis pra deixar bonito no GitHub e fácil de ler na entrega.  
+## 🔁 Pipeline CI/CD
 
-quer que eu te mostre como testar rapidamente se o markdown tá renderizando certinho dentro do IntelliJ antes de enviar?
+O projeto utiliza GitHub Actions para automação do ciclo de vida da aplicação.
+
+### Etapas do pipeline:
+
+* Checkout do código
+* Configuração do Java 21
+* Build com Maven
+* Build da imagem Docker
+* Deploy simulado em staging
+* Deploy simulado em produção
+
+---
+
+## 🐳 Containerização
+
+A aplicação foi containerizada utilizando Docker com estratégia de multi-stage build, garantindo melhor organização e menor tamanho da imagem final.
+
+---
+
+## ⚙️ Orquestração
+
+Foi utilizado Docker Compose para subir:
+
+* API Spring Boot
+* Banco de dados Oracle XE
+* Volume persistente
+* Healthcheck para o banco
+
+---
+
+## 📸 Evidências de Execução
+
+### Pipeline CI/CD executado com sucesso
+
+![Pipeline](docs/pipeline.png)
+
+---
+
+### Containers rodando
+
+![Docker](docs/docker.png)
+
+---
+
+### Aplicação em execução
+
+![App](docs/app.png)
+
+---
+
+### Conexão com Oracle validada
+
+![Oracle](docs/oracle.png)
+
+---
+
+## 🛠️ Tecnologias Utilizadas
+
+* Java 21
+* Spring Boot
+* Spring Security
+* JWT
+* Maven
+* Flyway
+* Oracle XE
+* Docker
+* Docker Compose
+* GitHub Actions
+
+---
+
+## 📂 Estrutura do Projeto
+
+```text
+cidades-esg-api/
+├── .github/
+│   └── workflows/
+│       └── ci.yml
+├── Dockerfile
+├── docker-compose.yml
+├── .env.example
+├── oracle-init/
+│   └── oracle-init/
+│       └── 01-create-app-user.sql
+├── src/
+├── docs/
+├── README.md
+└── pom.xml
+```
+
+---
+
+## ✅ Checklist de Entrega
+
+* [x] Projeto compactado em .ZIP com estrutura organizada
+* [x] Dockerfile funcional
+* [x] docker-compose.yml funcional
+* [x] Pipeline com build e deploy
+* [x] README com instruções e prints
+* [x] Documentação técnica (PPT/PDF)
+* [x] Deploy simulado em staging e produção
+
+---
