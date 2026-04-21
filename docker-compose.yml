@@ -1,0 +1,44 @@
+version: "3.9"
+services:
+  oracle:
+    image: gvenzl/oracle-xe:21-slim
+    container_name: oracle-xe
+    environment:
+      ORACLE_PASSWORD: oracle
+      ORACLE_CHARACTERSET: AL32UTF8
+    ports:
+      - "1521:1521"
+    volumes:
+      - oracle-data:/opt/oracle/oradata
+      - ./oracle-init:/container-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD", "bash", "-c", "echo 'select 1 from dual;' | sqlplus -s system/oracle@localhost/XEPDB1"]
+      interval: 15s
+      timeout: 10s
+      retries: 15
+
+  app:
+    build: .
+    container_name: esg-api
+    depends_on:
+      oracle:
+        condition: service_healthy
+    environment:
+      # Datasource (usa o serviço 'oracle' deste compose)
+      SPRING_DATASOURCE_URL: jdbc:oracle:thin:@//oracle:1521/XEPDB1
+      SPRING_DATASOURCE_USERNAME: APP
+      SPRING_DATASOURCE_PASSWORD: app
+      # JPA/Flyway
+      SPRING_JPA_HIBERNATE_DDL_AUTO: none
+      SPRING_FLYWAY_ENABLED: "true"
+      # JWT
+      security.jwt.secret: "esta-e-uma-chave-secreta-de-exemplo-bem-grande-para-jwt-1234567890"
+      security.jwt.expiration: "86400000"
+      # Porta do app
+      SERVER_PORT: "8080"
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+
+volumes:
+  oracle-data:

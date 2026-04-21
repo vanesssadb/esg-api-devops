@@ -1,0 +1,125 @@
+@baseUrl = http://localhost:8080
+@token = {{login.response.body.accessToken}}
+
+### 1) Login: pega o JWT
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "username": "admin",
+  "password": "admin"
+}
+
+> {%
+let data;
+try {
+  data = typeof response.body === 'string' ? JSON.parse(response.body) : response.body;
+} catch (e) {
+  if (typeof response.json === 'function') data = response.json();
+  else throw e;
+}
+if (!data || !data.accessToken) {
+  throw new Error("Login não retornou accessToken");
+}
+client.global.set("token", data.accessToken);
+%}
+
+### 2) GET /companies (liberado)
+GET {{baseUrl}}/companies
+
+### 3) POST /companies (protegido)
+POST {{baseUrl}}/companies
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "Empresa ESG",
+  "cnpj": "00.000.000/0001-00"
+}
+
+### 4) GET /companies (ver se criou)
+GET {{baseUrl}}/companies
+
+### LOGIN (para token)
+POST http://localhost:8080/auth/login
+Content-Type: application/json
+
+{
+  "username": "admin",
+  "password": "admin"
+}
+
+> {%
+let data = typeof response.body === 'string' ? JSON.parse(response.body) : response.body;
+client.global.set("token", data.accessToken);
+%}
+
+### ------------- EMISSIONS -------------
+### Criar emissão (ADMIN)
+POST http://localhost:8080/emissions
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "companyId": 1,
+  "recordDate": "2025-01-15",
+  "scope": "SCOPE1",
+  "amountTco2e": 12.5
+}
+
+### Listar emissões (público)
+GET http://localhost:8080/emissions?companyId=1
+
+### ------------- REDUCTION SCHEDULES -------------
+### Criar agendamento (ADMIN)
+POST http://localhost:8080/reduction-schedules
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "companyId": 1,
+  "title": "Troca de caldeira",
+  "plannedDate": "2025-02-10",
+  "status": "PLANNED",
+  "expectedReductionTco2e": 4.2
+}
+
+### Atualizar agendamento (ADMIN) — troque {id} pelo retornado
+PUT http://localhost:8080/reduction-schedules/1
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "companyId": 1,
+  "title": "Troca de caldeira – fase 2",
+  "plannedDate": "2025-03-01",
+  "status": "IN_PROGRESS",
+  "expectedReductionTco2e": 5.0
+}
+
+### Listar agendamentos (público)
+GET http://localhost:8080/reduction-schedules?companyId=1
+
+### Impacto estimado (público)
+GET http://localhost:8080/impacto-mitigacao/1
+
+### ------------- OFFSETS -------------
+### Criar offset (ADMIN)
+POST http://localhost:8080/offsets
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "companyId": 1,
+  "type": "REFORESTATION",
+  "description": "Plantio de 200 mudas",
+  "amountTco2e": 8.0,
+  "startDate": "2025-01-05"
+}
+
+### Listar offsets (público)
+GET http://localhost:8080/offsets
+
+### ------------- INDICATORS -------------
+### Indicadores (público)
+GET http://localhost:8080/indicators?companyId=1
