@@ -70,7 +70,75 @@ Foi utilizado Docker Compose para subir:
 * Healthcheck para o banco
 
 ---
+## 🧪 Testes Automatizados com BDD
 
+Este projeto inclui testes automatizados utilizando BDD (Behavior Driven Development), com cenários escritos em Gherkin e executados com Cucumber.
+
+Os testes validam funcionalidades críticas da API ESG, incluindo disponibilidade da aplicação, consulta de recursos públicos e controle de acesso em rotas protegidas.
+
+### Ferramentas utilizadas nos testes
+
+- Cucumber
+- Gherkin
+- JUnit Platform
+- RestAssured
+- JSON Schema Validator
+- Maven
+
+### Cenários BDD implementados
+
+Foram criados cenários em Gherkin para validar:
+
+- API disponível por meio do endpoint `/health`;
+- consulta pública da lista de empresas em `/companies`;
+- tentativa de cadastro de empresa sem autenticação, validando bloqueio por segurança.
+
+### Validações realizadas
+
+Os testes automatizados contemplam:
+
+- validação de status code;
+- validação do corpo da resposta em JSON;
+- validação de contrato utilizando JSON Schema.
+
+### Como executar os testes
+
+Com a aplicação e o banco Oracle em execução via Docker:
+
+```bash
+docker compose up --build
+````
+
+Em outro terminal, execute:
+
+```bash
+.\mvnw.cmd clean test
+```
+
+Resultado esperado:
+
+```text
+Tests run: 4, Failures: 0, Errors: 0, Skipped: 0
+BUILD SUCCESS
+```
+
+### Estrutura dos testes
+
+```text
+src/test/java/br/com/fiap/atv_cap_8/bdd/
+├── CucumberTest.java
+└── ApiStepDefinitions.java
+
+src/test/resources/features/
+└── api-esg.feature
+
+src/test/resources/schemas/
+├── health-schema.json
+├── list-schema.json
+├── indicators-schema.json
+└── error-schema.json
+```
+---
 ## 📸 Evidências de Execução
 
 ### Pipeline CI/CD executado com sucesso
